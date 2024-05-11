@@ -1,6 +1,7 @@
 const mysql = require('mysql2');
 const config = require('../config/config');
 const express = require('express');
+const { z } = require('zod');
 const app = express();
 
 app.use(express.json())
@@ -19,12 +20,46 @@ pool.getConnection((err, connection) => {
   connection.release(); // Release the connection
 });
 
+const validateSchema = (schema) => (req, res, next) => {
+  try {
+    schema.parse(req.body);
+    next();
+  } catch (error) {
+    res.status(400).json({ error: error.errors });
+  }
+};
+
+// Define Zod schema for entity
+const entitySchema = z.object({
+  name: z.string().nonempty('Name is required'),
+  email: z.string().email('Invalid email address'),
+  mobileNumber: z.string().min(10, 'Mobile number should be at least 10 characters'),
+  dateOfBirth: z.string().date('Invalid date of birth'),
+});
+
+// Middleware to validate entity creation request
+const validateCreateEntity = validateSchema(entitySchema);
+
+// Middleware to validate entity update request
+const validateUpdateEntity = validateSchema(
+  entitySchema.partial() // Allow partial updates
+);
+
+// Middleware to validate entity ID parameter
+const validateEntityId = (req, res, next) => {
+  if (!req.params.id) {
+    res.status(400).json({ error: 'Entity ID is required' });
+  } else {
+    next();
+  }
+};
+
 
 // server.js (or app.js)
 
 // Define route for fetching all entities
 
-app.post('/api/entities', (req, res) => {
+app.post('/api/entities', validateCreateEntity, (req, res) => {
   console.log("post started")
   const { name, email, mobileNumber, dateOfBirth } = req.body; // Assuming request body contains entity data
   console.log("taken data from body")
@@ -56,7 +91,7 @@ app.get('/api/entities', (req, res) => {
 });
 
 // Define route for fetching a single entity by ID
-app.get('/api/entities/:id', (req, res) => {
+app.get('/api/entities/:id', validateEntityId, (req, res) => {
   const entityId = req.params.id;
   // Fetch the entity from the database by ID
   const sql = 'SELECT * FROM entities WHERE id = ?';
@@ -75,7 +110,7 @@ app.get('/api/entities/:id', (req, res) => {
 });
 
 // Define a route for updating an existing entity
-app.put('/api/entities/:id', (req, res) => {
+app.put('/api/entities/:id', validateEntityId, validateUpdateEntity,(req, res) => {
   const entityId = req.params.id;
   const { name, email, mobileNumber, dateOfBirth } = req.body; // Updated entity data
 
@@ -99,7 +134,7 @@ app.put('/api/entities/:id', (req, res) => {
 });
 
 // Define a route for deleting an existing entity
-app.delete('/api/entities/:id', (req, res) => {
+app.delete('/api/entities/:id', validateEntityId, (req, res) => {
   const entityId = req.params.id;
 
   // Check if entity ID is provided
