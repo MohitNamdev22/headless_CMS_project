@@ -46,7 +46,7 @@ app.get('/api/entities/:id', (req, res) => {
           return;
       }
       if (!result.length) {
-          res.status(404).send('Entity not found');
+          res.status(404).send('No entry for this particular ID, please check ID');
           return;
       }
       res.json(result[0]); // Send the retrieved entity as JSON response
