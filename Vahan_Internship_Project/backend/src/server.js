@@ -74,6 +74,30 @@ app.get('/api/entities/:id', (req, res) => {
   });
 });
 
+// Define a route for updating an existing entity
+app.put('/api/entities/:id', (req, res) => {
+  const entityId = req.params.id;
+  const { name, email, mobileNumber, dateOfBirth } = req.body; // Updated entity data
+
+  // Check if entity ID is provided
+  if (!entityId) {
+      res.status(400).json({ error: 'Entity ID is required' });
+      return;
+  }
+
+  // Execute the database query to update the entity
+  const sql = 'UPDATE entities SET name=?, email=?, mobileNumber=?, dateOfBirth=? WHERE id=?';
+  pool.query(sql, [name, email, mobileNumber, dateOfBirth, entityId], (err, result) => {
+      if (err) {
+          console.error('Error updating entity:', err);
+          res.status(500).send('Internal Server Error');
+          return;
+      }
+      console.log('Entity updated successfully!');
+      res.status(200).send('Entity updated successfully!');
+  });
+});
+
 
   
   // server.js (or app.js)
