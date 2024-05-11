@@ -98,6 +98,29 @@ app.put('/api/entities/:id', (req, res) => {
   });
 });
 
+// Define a route for deleting an existing entity
+app.delete('/api/entities/:id', (req, res) => {
+  const entityId = req.params.id;
+
+  // Check if entity ID is provided
+  if (!entityId) {
+      res.status(400).json({ error: 'Entity ID is required' });
+      return;
+  }
+
+  // Execute the database query to delete the entity
+  const sql = 'DELETE FROM entities WHERE id=?';
+  pool.query(sql, [entityId], (err, result) => {
+      if (err) {
+          console.error('Error deleting entity:', err);
+          res.status(500).send('Internal Server Error');
+          return;
+      }
+      console.log('Entity deleted successfully!');
+      res.status(200).send('Entity deleted successfully!');
+  });
+});
+
 
   
   // server.js (or app.js)
