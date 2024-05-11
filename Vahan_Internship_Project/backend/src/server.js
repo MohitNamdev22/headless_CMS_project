@@ -1,10 +1,11 @@
 const mysql = require('mysql2');
 const config = require('../config/config');
 const express = require('express');
-const { z } = require('zod');
+const cors = require('cors');
 const app = express();
 
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Create a database connection pool
@@ -20,146 +21,136 @@ pool.getConnection((err, connection) => {
   connection.release(); // Release the connection
 });
 
-const validateSchema = (schema) => (req, res, next) => {
-  try {
-    schema.parse(req.body);
-    next();
-  } catch (error) {
-    res.status(400).json({ error: error.errors });
-  }
-};
-
-// Define Zod schema for entity
-const entitySchema = z.object({
-  name: z.string().nonempty('Name is required'),
-  email: z.string().email('Invalid email address'),
-  mobileNumber: z.string().min(10, 'Mobile number should be at least 10 characters'),
-  dateOfBirth: z.string().date('Invalid date of birth'),
-});
-
-// Middleware to validate entity creation request
-const validateCreateEntity = validateSchema(entitySchema);
-
-// Middleware to validate entity update request
-const validateUpdateEntity = validateSchema(
-  entitySchema.partial() // Allow partial updates
-);
-
-// Middleware to validate entity ID parameter
-const validateEntityId = (req, res, next) => {
-  if (!req.params.id) {
-    res.status(400).json({ error: 'Entity ID is required' });
-  } else {
-    next();
-  }
-};
-
-
-// server.js (or app.js)
-
-// Define route for fetching all entities
-
-app.post('/api/entities', validateCreateEntity, (req, res) => {
-  console.log("post started")
-  const { name, email, mobileNumber, dateOfBirth } = req.body; // Assuming request body contains entity data
-  console.log("taken data from body")
-  const sql = 'INSERT INTO entities (name, email, mobileNumber, dateOfBirth) VALUES (?, ?, ?, ?)';
-  console.log("query run")
-  pool.query(sql, [name, email, mobileNumber, dateOfBirth], (err, result) => {
+// Define route for creating a new entity and its corresponding table
+app.post('/api/entities', (req, res) => {
+  const { name, attributes } = req.body;
+  const createTableQuery = `CREATE TABLE IF NOT EXISTS ${name} (${attributes.map(attr => `${attr.name} ${attr.type}`).join(', ')})`;
+  pool.query(createTableQuery, (err, result) => {
     if (err) {
-      console.error('Error creating entity:', err);
+      console.error('Error creating table:', err);
       res.status(500).send('Internal Server Error');
       return;
     }
-    console.log('Entity created successfully!');
-    res.status(201).send('Entity created successfully!');
+    console.log('Table created successfully!');
+    res.status(201).send('Table created successfully!');
+  });
+});
+
+// Define route for adding attributes to an existing entity table
+app.post('/api/entities/:name/add-attributes', (req, res) => {
+  const { name } = req.params;
+  const { attributes } = req.body;
+
+  // Check if the table exists
+  const checkTableQuery = `SHOW TABLES LIKE '${name}'`;
+  pool.query(checkTableQuery, (err, result) => {
+    if (err) {
+      console.error('Error checking table:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    if (result.length === 0) {
+      res.status(404).send('Table does not exist');
+      return;
+    }
+
+    // Alter the table to add new attributes
+    const alterTableQuery = `ALTER TABLE ${name} ${attributes.map(attr => `ADD COLUMN ${attr.name} ${attr.type}`).join(', ')}`;
+    pool.query(alterTableQuery, (err, result) => {
+      if (err) {
+        console.error('Error adding attributes to table:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      console.log('Attributes added to table successfully!');
+      res.status(200).send('Attributes added to table successfully!');
+    });
   });
 });
 
 
+// Define route for fetching all entities
 app.get('/api/entities', (req, res) => {
-  // Fetch all entities from the database
   const sql = 'SELECT * FROM entities';
   pool.query(sql, (err, results) => {
-      if (err) {
-          console.error('Error fetching entities:', err);
-          res.status(500).send('Internal Server Error');
-          return;
-      }
-      res.json(results); // Send the retrieved entities as JSON response
+    if (err) {
+      console.error('Error fetching entities:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.json(results);
   });
 });
 
 // Define route for fetching a single entity by ID
-app.get('/api/entities/:id', validateEntityId, (req, res) => {
-  const entityId = req.params.id;
-  // Fetch the entity from the database by ID
-  const sql = 'SELECT * FROM entities WHERE id = ?';
-  pool.query(sql, [entityId], (err, result) => {
-      if (err) {
-          console.error('Error fetching entity:', err);
-          res.status(500).send('Internal Server Error');
-          return;
-      }
-      if (!result.length) {
-          res.status(404).send('No entry for this particular ID, please check ID');
-          return;
-      }
-      res.json(result[0]); // Send the retrieved entity as JSON response
+app.get('/api/entities/:name/:id', (req, res) => {
+  const { name, id } = req.params;
+  const sql = `SELECT * FROM ${name} WHERE id = ?`;
+  pool.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error fetching entity:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (!result.length) {
+      res.status(404).send('No entry for this particular ID, please check ID');
+      return;
+    }
+    res.json(result[0]);
   });
 });
 
 // Define a route for updating an existing entity
-app.put('/api/entities/:id', validateEntityId, validateUpdateEntity,(req, res) => {
-  const entityId = req.params.id;
-  const { name, email, mobileNumber, dateOfBirth } = req.body; // Updated entity data
+app.put('/api/entities/:name/:id', (req, res) => {
+  const { name, id } = req.params;
+  const { attributes } = req.body; // Updated entity data
 
   // Check if entity ID is provided
-  if (!entityId) {
-      res.status(400).json({ error: 'Entity ID is required' });
-      return;
+  if (!id) {
+    res.status(400).json({ error: 'Entity ID is required' });
+    return;
   }
 
+  // Build the SET part of the SQL query dynamically based on the provided attributes
+  const setClause = attributes.map(attr => `${attr.name} = ?`).join(', ');
+  const values = attributes.map(attr => attr.value);
+
   // Execute the database query to update the entity
-  const sql = 'UPDATE entities SET name=?, email=?, mobileNumber=?, dateOfBirth=? WHERE id=?';
-  pool.query(sql, [name, email, mobileNumber, dateOfBirth, entityId], (err, result) => {
-      if (err) {
-          console.error('Error updating entity:', err);
-          res.status(500).send('Internal Server Error');
-          return;
-      }
-      console.log('Entity updated successfully!');
-      res.status(200).send('Entity updated successfully!');
+  const sql = `UPDATE ${name} SET ${setClause} WHERE id = ?`;
+  pool.query(sql, [...values, id], (err, result) => {
+    if (err) {
+      console.error('Error updating entity:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    console.log('Entity updated successfully!');
+    res.status(200).send('Entity updated successfully!');
   });
 });
 
 // Define a route for deleting an existing entity
-app.delete('/api/entities/:id', validateEntityId, (req, res) => {
-  const entityId = req.params.id;
+app.delete('/api/entities/:name/:id', (req, res) => {
+  const { name, id } = req.params;
 
   // Check if entity ID is provided
-  if (!entityId) {
-      res.status(400).json({ error: 'Entity ID is required' });
-      return;
+  if (!id) {
+    res.status(400).json({ error: 'Entity ID is required' });
+    return;
   }
 
   // Execute the database query to delete the entity
-  const sql = 'DELETE FROM entities WHERE id=?';
-  pool.query(sql, [entityId], (err, result) => {
-      if (err) {
-          console.error('Error deleting entity:', err);
-          res.status(500).send('Internal Server Error');
-          return;
-      }
-      console.log('Entity deleted successfully!');
-      res.status(200).send('Entity deleted successfully!');
+  const sql = `DELETE FROM ${name} WHERE id = ?`;
+  pool.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting entity:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    console.log('Entity deleted successfully!');
+    res.status(200).send('Entity deleted successfully!');
   });
 });
-
-
-  
-  // server.js (or app.js)
-
 
 // Add middleware, route handlers, etc.
 

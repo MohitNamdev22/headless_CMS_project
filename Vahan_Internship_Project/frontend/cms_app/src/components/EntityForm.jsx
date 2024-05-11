@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const EntityForm = () => {
   // State variables to store user input for entity attributes
@@ -37,13 +38,19 @@ const EntityForm = () => {
   };
 
   // Function to handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission (e.g., send data to backend API to create entity)
-    console.log({ entityName, attributes });
-    // Reset form fields after submission
-    setEntityName('');
-    setAttributes([{ name: '', type: '' }]);
+    try {
+      // Make a POST request to the backend API endpoint to create the entity
+      const response = await axios.post('http://localhost:3000/api/entities', { entityName, attributes });
+      console.log(response.data); // Log the response from the backend
+      // Reset form fields after successful submission
+      setEntityName('');
+      setAttributes([{ name: '', type: '' }]);
+    } catch (error) {
+      console.error('Error creating entity:', error);
+      // Handle error (e.g., show error message to the user)
+    }
   };
 
   return (
