@@ -17,26 +17,42 @@ pool.getConnection((err, connection) => {
   connection.release(); // Release the connection
 });
 
+
 // server.js (or app.js)
 
-// Define a route for creating a new entity
-app.post('/api/entities', (req, res) => {
-    const { name, email, mobileNumber, dateOfBirth } = req.body; // Assuming request body contains entity data
-    const sql = 'INSERT INTO entities (name, email, mobileNumber, dateOfBirth) VALUES (?, ?, ?, ?)';
-    pool.query(sql, [name, email, mobileNumber, dateOfBirth], (err, result) => {
+// Define route for fetching all entities
+app.get('/api/entities', (req, res) => {
+  // Fetch all entities from the database
+  const sql = 'SELECT * FROM entities';
+  pool.query(sql, (err, results) => {
       if (err) {
-        console.error('Error creating entity:', err);
-        res.status(500).send('Internal Server Error');
-        return;
+          console.error('Error fetching entities:', err);
+          res.status(500).send('Internal Server Error');
+          return;
       }
-      console.log('Entity created successfully!');
-      res.status(201).send('Entity created successfully!');
-    });
+      res.json(results); // Send the retrieved entities as JSON response
   });
-  
-  // Define routes for other CRUD operations (Read, Update, Delete)
-  // ...
-  
+});
+
+// Define route for fetching a single entity by ID
+app.get('/api/entities/:id', (req, res) => {
+  const entityId = req.params.id;
+  // Fetch the entity from the database by ID
+  const sql = 'SELECT * FROM entities WHERE id = ?';
+  pool.query(sql, [entityId], (err, result) => {
+      if (err) {
+          console.error('Error fetching entity:', err);
+          res.status(500).send('Internal Server Error');
+          return;
+      }
+      if (!result.length) {
+          res.status(404).send('Entity not found');
+          return;
+      }
+      res.json(result[0]); // Send the retrieved entity as JSON response
+  });
+});
+
 
   
   // server.js (or app.js)
