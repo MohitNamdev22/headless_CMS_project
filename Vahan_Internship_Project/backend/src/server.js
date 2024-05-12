@@ -24,7 +24,10 @@ pool.getConnection((err, connection) => {
 // Define route for creating a new entity and its corresponding table
 app.post('/api/entities', (req, res) => {
   const { name, attributes } = req.body;
-  const createTableQuery = `CREATE TABLE IF NOT EXISTS ${name} (${attributes.map(attr => `${attr.name} ${attr.type}`).join(', ')})`;
+  const createTableQuery = `CREATE TABLE IF NOT EXISTS ${name} (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ${attributes.map(attr => `${attr.name} ${attr.type}`).join(', ')}
+  )`;
   pool.query(createTableQuery, (err, result) => {
     if (err) {
       console.error('Error creating table:', err);
@@ -36,36 +39,21 @@ app.post('/api/entities', (req, res) => {
   });
 });
 
-// Define route for adding attributes to an existing entity table
-app.post('/api/entities/:name/add-attributes', (req, res) => {
+// Define route for adding data to an existing entity table
+app.post('/api/entities/:name/add-data', (req, res) => {
   const { name } = req.params;
-  const { attributes } = req.body;
+  const data = req.body; // Data received from the frontend
 
-  // Check if the table exists
-  const checkTableQuery = `SHOW TABLES LIKE '${name}'`;
-  pool.query(checkTableQuery, (err, result) => {
+  // Insert data into the specified table
+  const insertDataQuery = `INSERT INTO ${name} (${Object.keys(data).join(',')}) VALUES (${Object.values(data).map(value => `'${value}'`).join(',')})`;
+  pool.query(insertDataQuery, (err, result) => {
     if (err) {
-      console.error('Error checking table:', err);
+      console.error('Error inserting data:', err);
       res.status(500).send('Internal Server Error');
       return;
     }
-
-    if (result.length === 0) {
-      res.status(404).send('Table does not exist');
-      return;
-    }
-
-    // Alter the table to add new attributes
-    const alterTableQuery = `ALTER TABLE ${name} ${attributes.map(attr => `ADD COLUMN ${attr.name} ${attr.type}`).join(', ')}`;
-    pool.query(alterTableQuery, (err, result) => {
-      if (err) {
-        console.error('Error adding attributes to table:', err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-      console.log('Attributes added to table successfully!');
-      res.status(200).send('Attributes added to table successfully!');
-    });
+    console.log('Data inserted successfully!');
+    res.status(201).send('Data inserted successfully!');
   });
 });
 
