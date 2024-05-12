@@ -27,6 +27,21 @@ const EntityList = () => {
     await fetchEntities(tableNameInput);
   };
 
+  const handleUpdate = (entityId) => {
+    navigate(`/entities/${tableName}/${entityId}`);
+  };
+
+  const handleDelete = async (entityId) => {
+    try {
+      await axios.delete(`http://localhost:3000/api/entities/${tableName}/${entityId}`);
+      // Refresh entities list after successful deletion
+      await fetchEntities(tableName);
+    } catch (error) {
+      console.error('Error deleting entity:', error);
+      // Handle error appropriately
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto mt-8 p-4 border rounded shadow">
       <h2 className="text-xl font-bold mb-4">Entity List</h2>
@@ -48,7 +63,12 @@ const EntityList = () => {
               {Object.keys(entity).map(key => (
                 <span key={key}><strong>{key}: </strong>{entity[key]}</span>
               ))}
-              {/* Link to add data page for this entity */}
+              <div>
+                {/* Button to trigger update action */}
+                <button onClick={() => handleUpdate(entity.id)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Update</button>
+                {/* Button to trigger delete action */}
+                <button onClick={() => handleDelete(entity.id)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-2">Delete</button>
+              </div>
             </div>
           </li>
         ))}
