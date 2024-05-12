@@ -104,6 +104,11 @@ app.get('/api/entities/:name', (req, res) => {
 // Define route for fetching a single entity by ID
 app.get('/api/entities/:name/:id', (req, res) => {
   const { name, id } = req.params;
+
+  if(!name) {
+    res.status(400).json({error:'Entity name is required'});
+    return;
+  }
   const sql = `SELECT * FROM ${name} WHERE id = ?`;
   pool.query(sql, [id], (err, result) => {
     if (err) {
