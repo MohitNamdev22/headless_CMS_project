@@ -2,9 +2,14 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const EntityForm = () => {
+  // Define an array of valid attribute types
+  const validAttributeTypes = ['INT', 'VARCHAR', 'TEXT', 'DATE', 'BOOLEAN']; // Add more types as needed
+
   // State variables to store user input for entity attributes
   const [entityName, setEntityName] = useState('');
-  const [attributes, setAttributes] = useState([{ name: '', type: '' }]);
+  const [attributeName, setAttributeName] = useState('');
+  const [attributeType, setAttributeType] = useState('');
+  const [attributes, setAttributes] = useState([]);
 
   // Function to handle changes in entity name input
   const handleEntityNameChange = (e) => {
@@ -12,22 +17,22 @@ const EntityForm = () => {
   };
 
   // Function to handle changes in attribute name input
-  const handleAttributeNameChange = (index, e) => {
-    const updatedAttributes = [...attributes];
-    updatedAttributes[index].name = e.target.value;
-    setAttributes(updatedAttributes);
+  const handleAttributeNameChange = (e) => {
+    setAttributeName(e.target.value);
   };
 
   // Function to handle changes in attribute type input
-  const handleAttributeTypeChange = (index, e) => {
-    const updatedAttributes = [...attributes];
-    updatedAttributes[index].type = e.target.value;
-    setAttributes(updatedAttributes);
+  const handleAttributeTypeChange = (e) => {
+    setAttributeType(e.target.value);
   };
 
   // Function to add a new attribute field
   const addAttributeField = () => {
-    setAttributes([...attributes, { name: '', type: '' }]);
+    if (attributeName && attributeType) {
+      setAttributes([...attributes, { name: attributeName, type: attributeType }]);
+      setAttributeName('');
+      setAttributeType('');
+    }
   };
 
   // Function to remove an attribute field
@@ -42,11 +47,14 @@ const EntityForm = () => {
     e.preventDefault();
     try {
       // Make a POST request to the backend API endpoint to create the entity
-      const response = await axios.post('http://localhost:3000/api/entities', { entityName, attributes });
+      const response = await axios.post('http://localhost:3000/api/entities', {
+        name: entityName,
+        attributes
+      });
       console.log(response.data); // Log the response from the backend
       // Reset form fields after successful submission
       setEntityName('');
-      setAttributes([{ name: '', type: '' }]);
+      setAttributes([]);
     } catch (error) {
       console.error('Error creating entity:', error);
       // Handle error (e.g., show error message to the user)
@@ -63,34 +71,38 @@ const EntityForm = () => {
         </label>
         <br />
         <h3>Attributes:</h3>
+        <div>
+          <label>
+            Attribute Name:
+            <input
+              type="text"
+              value={attributeName}
+              onChange={handleAttributeNameChange}
+              required
+            />
+          </label>
+          <label>
+            Attribute Type:
+            <select value={attributeType} onChange={handleAttributeTypeChange} required>
+              <option value="">Select Type</option>
+              {validAttributeTypes.map((type, index) => (
+                <option key={index} value={type}>{type}</option>
+              ))}
+            </select>
+          </label>
+          <button type="button" onClick={addAttributeField}>
+            Add Attribute
+          </button>
+        </div>
+        <br />
         {attributes.map((attribute, index) => (
           <div key={index}>
-            <label>
-              Attribute Name:
-              <input
-                type="text"
-                value={attribute.name}
-                onChange={(e) => handleAttributeNameChange(index, e)}
-                required
-              />
-            </label>
-            <label>
-              Attribute Type:
-              <input
-                type="text"
-                value={attribute.type}
-                onChange={(e) => handleAttributeTypeChange(index, e)}
-                required
-              />
-            </label>
+            <span>{attribute.name} ({attribute.type})</span>
             <button type="button" onClick={() => removeAttributeField(index)}>
               Remove Attribute
             </button>
           </div>
         ))}
-        <button type="button" onClick={addAttributeField}>
-          Add Attribute
-        </button>
         <br />
         <button type="submit">Create Entity</button>
       </form>
