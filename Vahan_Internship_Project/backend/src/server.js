@@ -58,18 +58,24 @@ app.post('/api/entities/:name/add-data', (req, res) => {
 });
 
 
-// Define route for fetching all entities
-app.get('/api/entities', (req, res) => {
-  const sql = 'SELECT * FROM entities';
+// Define route for fetching all entries in a specific table
+app.get('/api/entities/:name', (req, res) => {
+  const { name } = req.params;
+
+  // Construct the SQL query to select all entries from the specified table
+  const sql = `SELECT * FROM ${name}`;
+
+  // Execute the query to fetch all entries from the table
   pool.query(sql, (err, results) => {
     if (err) {
-      console.error('Error fetching entities:', err);
+      console.error('Error fetching entries:', err);
       res.status(500).send('Internal Server Error');
       return;
     }
     res.json(results);
   });
 });
+
 
 // Define route for fetching a single entity by ID
 app.get('/api/entities/:name/:id', (req, res) => {
