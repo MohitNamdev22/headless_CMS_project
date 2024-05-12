@@ -25,10 +25,18 @@ pool.getConnection((err, connection) => {
 // Define route for creating a new entity and its corresponding table
 app.post('/api/entities', (req, res) => {
   const { name, attributes } = req.body;
+  const columnDefinitions = attributes.map(attr => {
+    if (attr.type === 'VARCHAR') {
+      return `${attr.name} ${attr.type}(${attr.length || 255})`; // Use specified length or default to 255
+    }
+    return `${attr.name} ${attr.type}`;
+  }).join(', ');
+
   const createTableQuery = `CREATE TABLE IF NOT EXISTS ${name} (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    ${attributes.map(attr => `${attr.name} ${attr.type}`).join(', ')}
+    ${columnDefinitions}
   )`;
+
   pool.query(createTableQuery, (err, result) => {
     if (err) {
       console.error('Error creating table:', err);
@@ -39,6 +47,7 @@ app.post('/api/entities', (req, res) => {
     res.status(201).send('Table created successfully!');
   });
 });
+
 
 // Define route for adding data to an existing entity table
 app.post('/api/entities/:name/add-data', (req, res) => {

@@ -43,7 +43,7 @@ const EntityList = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-8 p-4 border rounded shadow">
+    <div className="max-w-xl mx-auto mt-8 p-4 border rounded shadow">
       <h2 className="text-xl font-bold mb-4">Entity List</h2>
       <form onSubmit={handleSubmit} className="mb-4">
         <input

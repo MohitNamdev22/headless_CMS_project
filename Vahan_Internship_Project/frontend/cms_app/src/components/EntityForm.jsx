@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+
 
 const EntityForm = () => {
   const validAttributeTypes = ['INT', 'VARCHAR', 'TEXT', 'DATE', 'BOOLEAN'];
@@ -45,6 +47,8 @@ const EntityForm = () => {
       console.log(response.data);
       setEntityName('');
       setAttributes([]);
+      alert('Entity Created Successfully');
+      history.push('/entity-list')
     } catch (error) {
       console.error('Error creating entity:', error);
     }
@@ -83,10 +87,12 @@ const EntityForm = () => {
           <div key={index} className="flex items-center mb-2">
             <span className="text-gray-800">{attribute.name} ({attribute.type})</span>
             <button type="button" onClick={() => removeAttributeField(index)} className="ml-4 px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700">Remove Attribute</button>
+            
           </div>
         ))}
         <div className="mt-4">
           <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Create Entity</button>
+          <Link to={"/entities/table/"} className="px-4 py-2 mx-2 bg-green-600 text-white rounded-md hover:bg-green-700">Add Data</Link>
         </div>
       </form>
     </div>
