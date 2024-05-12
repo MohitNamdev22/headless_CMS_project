@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 
 const EntityList = () => {
   const [entities, setEntities] = useState([]);
@@ -39,6 +39,7 @@ const EntityList = () => {
           className="border border-gray-300 rounded px-4 py-2 mr-2"
         />
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Fetch Entities</button>
+        <Link to={`/entities/${tableName}/add-data`} className="bg-blue-500 text-white mx-2 px-5 py-2 rounded hover:bg-blue-600">Add Data</Link>
       </form>
       <ul>
         {entities.map(entity => (
@@ -47,6 +48,7 @@ const EntityList = () => {
               {Object.keys(entity).map(key => (
                 <span key={key}><strong>{key}: </strong>{entity[key]}</span>
               ))}
+              {/* Link to add data page for this entity */}
             </div>
           </li>
         ))}
