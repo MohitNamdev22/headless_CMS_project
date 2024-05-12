@@ -2,31 +2,25 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const EntityForm = () => {
-  // Define an array of valid attribute types
-  const validAttributeTypes = ['INT', 'VARCHAR', 'TEXT', 'DATE', 'BOOLEAN']; // Add more types as needed
+  const validAttributeTypes = ['INT', 'VARCHAR', 'TEXT', 'DATE', 'BOOLEAN'];
 
-  // State variables to store user input for entity attributes
   const [entityName, setEntityName] = useState('');
   const [attributeName, setAttributeName] = useState('');
   const [attributeType, setAttributeType] = useState('');
   const [attributes, setAttributes] = useState([]);
 
-  // Function to handle changes in entity name input
   const handleEntityNameChange = (e) => {
     setEntityName(e.target.value);
   };
 
-  // Function to handle changes in attribute name input
   const handleAttributeNameChange = (e) => {
     setAttributeName(e.target.value);
   };
 
-  // Function to handle changes in attribute type input
   const handleAttributeTypeChange = (e) => {
     setAttributeType(e.target.value);
   };
 
-  // Function to add a new attribute field
   const addAttributeField = () => {
     if (attributeName && attributeType) {
       setAttributes([...attributes, { name: attributeName, type: attributeType }]);
@@ -35,76 +29,65 @@ const EntityForm = () => {
     }
   };
 
-  // Function to remove an attribute field
   const removeAttributeField = (index) => {
     const updatedAttributes = [...attributes];
     updatedAttributes.splice(index, 1);
     setAttributes(updatedAttributes);
   };
 
-  // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Make a POST request to the backend API endpoint to create the entity
       const response = await axios.post('http://localhost:3000/api/entities', {
         name: entityName,
         attributes
       });
-      console.log(response.data); // Log the response from the backend
-      // Reset form fields after successful submission
+      console.log(response.data);
       setEntityName('');
       setAttributes([]);
     } catch (error) {
       console.error('Error creating entity:', error);
-      // Handle error (e.g., show error message to the user)
     }
   };
 
   return (
-    <div className='bg-red-700 p-4 rounded-lg shadow'>
-      <h2 className="text-2xl font-bold mb-4">Create New Entity</h2>
+    <div className='bg-white p-6 rounded-lg shadow-md'>
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">Create New Entity</h2>
       <form onSubmit={handleSubmit}>
-        <label>
-          Entity Name:
-          <input className='' type="text" value={entityName} onChange={handleEntityNameChange} required />
-        </label>
-        <br />
-        <h3>Attributes:</h3>
-        <div>
-          <label>
-            Attribute Name:
-            <input
-              type="text"
-              value={attributeName}
-              onChange={handleAttributeNameChange}
-              required
-            />
+        <div className="mb-4">
+          <label className="block text-gray-800 mb-2">
+            Entity Name:
+            <input className="mt-1 block w-full rounded-md border border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" type="text" value={entityName} onChange={handleEntityNameChange} required />
           </label>
-          <label>
-            Attribute Type:
-            <select value={attributeType} onChange={handleAttributeTypeChange} required>
-              <option value="">Select Type</option>
-              {validAttributeTypes.map((type, index) => (
-                <option key={index} value={type}>{type}</option>
-              ))}
-            </select>
-          </label>
-          <button type="button" onClick={addAttributeField}>
-            Add Attribute
-          </button>
         </div>
-        <br />
+        <div className="mb-4">
+          <h3 className="text-gray-800 mb-2">Attributes:</h3>
+          <div className="flex items-center mb-2">
+            <label className="block text-gray-800 mr-4">
+              Attribute Name:
+              <input className="mt-1 block rounded-md border border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" type="text" value={attributeName} onChange={handleAttributeNameChange} required />
+            </label>
+            <label className="block text-gray-800 mr-4">
+              Attribute Type:
+              <select className="mt-1 block rounded-md border border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value={attributeType} onChange={handleAttributeTypeChange} required>
+                <option value="">Select Type</option>
+                {validAttributeTypes.map((type, index) => (
+                  <option key={index} value={type}>{type}</option>
+                ))}
+              </select>
+            </label>
+            <button type="button" onClick={addAttributeField} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Add Attribute</button>
+          </div>
+        </div>
         {attributes.map((attribute, index) => (
-          <div key={index}>
-            <span>{attribute.name} ({attribute.type})</span>
-            <button type="button" onClick={() => removeAttributeField(index)}>
-              Remove Attribute
-            </button>
+          <div key={index} className="flex items-center mb-2">
+            <span className="text-gray-800">{attribute.name} ({attribute.type})</span>
+            <button type="button" onClick={() => removeAttributeField(index)} className="ml-4 px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700">Remove Attribute</button>
           </div>
         ))}
-        <br />
-        <button type="submit">Create Entity</button>
+        <div className="mt-4">
+          <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Create Entity</button>
+        </div>
       </form>
     </div>
   );
