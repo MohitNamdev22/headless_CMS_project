@@ -98,7 +98,7 @@ app.get('/api/entities/:name/:id', (req, res) => {
 // Define a route for updating an existing entity
 app.put('/api/entities/:name/:id', (req, res) => {
   const { name, id } = req.params;
-  const { attributes } = req.body; // Updated entity data
+  const attributes = req.body; // Updated entity data
 
   // Check if entity ID is provided
   if (!id) {
@@ -107,8 +107,8 @@ app.put('/api/entities/:name/:id', (req, res) => {
   }
 
   // Build the SET part of the SQL query dynamically based on the provided attributes
-  const setClause = attributes.map(attr => `${attr.name} = ?`).join(', ');
-  const values = attributes.map(attr => attr.value);
+  const setClause = Object.keys(attributes).map(attr => `${attr} = ?`).join(', ');
+  const values = Object.values(attributes);
 
   // Execute the database query to update the entity
   const sql = `UPDATE ${name} SET ${setClause} WHERE id = ?`;
@@ -122,6 +122,7 @@ app.put('/api/entities/:name/:id', (req, res) => {
     res.status(200).send('Entity updated successfully!');
   });
 });
+
 
 // Define a route for deleting an existing entity
 app.delete('/api/entities/:name/:id', (req, res) => {
