@@ -2,6 +2,7 @@ const mysql = require('mysql2');
 const config = require('../config/config');
 const express = require('express');
 const cors = require('cors');
+const router = express.Router();
 const app = express();
 
 app.use(cors());
@@ -54,6 +55,29 @@ app.post('/api/entities/:name/add-data', (req, res) => {
     }
     console.log('Data inserted successfully!');
     res.status(201).send('Data inserted successfully!');
+  });
+});
+
+app.get('/api/entities/:name/attributes', (req, res) => {
+  console.log("control reached in attribute")
+  const { name } = req.params;
+
+  // Query to fetch attributes of the specified table from the database
+  const getAttributesQuery = `DESCRIBE ${name}`;
+
+  // Execute the query
+  pool.query(getAttributesQuery, (err, results) => {
+    if (err) {
+      console.error('Error fetching attributes:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    
+    // Extract attribute names from the query results
+    const attributes = results.map(row => row.Field);
+    
+    // Send the attributes as the response
+    res.json({ attributes });   
   });
 });
 

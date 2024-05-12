@@ -1,14 +1,16 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Import BrowserRouter and Route
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import EntityForm from './components/EntityForm';
-import EntityList from './components/EntityList'; // Import EntityList component
+import EntityList from './components/EntityList';
+import EntityAddData from './components/EntityAddInfo'; // Import EntityAddData component
 
 function App() {
   return (
-    <Router> {/* Wrap your components with the Router component */}
+    <Router>
       <Routes>
-        <Route path="/entities/create" element={<EntityForm />} /> {/* Define the route for EntityForm */}
-        <Route path="/entities/:tableName" element={<EntityList />} /> {/* Define the route for EntityList */}
+        <Route path="/entities/:tableName" element={<EntityList />} />
+        <Route path="/entities" element={<EntityForm />} />
+        <Route path="/entities/:name/add-data" element={<EntityAddData />} /> {/* Define the route for EntityAddData */}
       </Routes>
     </Router>
   );
