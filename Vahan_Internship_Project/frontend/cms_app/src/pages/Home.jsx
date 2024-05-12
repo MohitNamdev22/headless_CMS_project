@@ -33,7 +33,7 @@ const Home = () => {
       </section>
       <section className="mt-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Get Started</h2>
-        <p className="mb-4">Sign up now to start creating and managing your content!</p>
+        <p className="mb-4">Get started with creating and managing your content!</p>
         <Link to={`/entities/`} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Create New Entity</Link>
       </section>
     </div>
