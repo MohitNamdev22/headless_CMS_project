@@ -9,7 +9,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Create a database connection pool
 const pool = mysql.createPool(config.database);
 
 // Test the database connection
