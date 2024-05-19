@@ -1,4 +1,3 @@
-// EntityUpdateForm.jsx
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -32,10 +31,8 @@ const EntityUpdateForm = () => {
     e.preventDefault();
     try {
       await axios.put(`http://localhost:3000/api/entities/${tableName}/${id}`, formData);
-      // Handle successful update
     } catch (error) {
       console.error('Error updating entity:', error);
-      // Handle error appropriately
     }
   };
 

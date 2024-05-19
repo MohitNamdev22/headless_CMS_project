@@ -8,11 +8,10 @@ const EntityAddData = () => {
   const { name } = useParams();
 
   useEffect(() => {
-    // Fetch attribute information for the entity from the backend
     const fetchAttributes = async () => {
       try {
         const response = await axios.get(`http://localhost:3000/api/entities/${name}/attributes`);
-        setAttributes(response.data.attributes); // Assuming response.data is an object containing 'attributes'
+        setAttributes(response.data.attributes);
       } catch (error) {
         console.error('Error fetching attributes:', error);
       }
@@ -41,11 +40,9 @@ const EntityAddData = () => {
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded shadow">
       <h2 className="text-2xl font-semibold mb-6">Add Data to {name}</h2>
-      {attributes.length > 0 && ( // Render form only when attributes are available
+      {attributes.length > 0 && ( 
         <form onSubmit={handleSubmit}>
-          {/* Dynamically render input fields for each attribute */}
           {attributes.map((attribute) => (
-            // Exclude ID field from rendering
             attribute !== 'id' && (
               <div key={attribute} className="mb-4">
                 <label className="block text-gray-700">{attribute}</label>
