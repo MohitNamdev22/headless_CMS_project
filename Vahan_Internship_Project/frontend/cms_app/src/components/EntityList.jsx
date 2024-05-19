@@ -41,14 +41,14 @@ const EntityList = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-8 p-4 border rounded shadow">
+    <div className="max-w-xxl mx-auto mt-8 p-4 border rounded shadow">
       <h2 className="text-xl font-bold mb-4">Entity List</h2>
       <form onSubmit={handleSubmit} className="mb-4">
         <input
           type="text"
           value={tableNameInput}
           onChange={(e) => setTableNameInput(e.target.value)}
-          placeholder="Enter table name"
+          placeholder="Enter entity name"
           className="border border-gray-300 rounded px-4 py-2 mr-2"
         />
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Fetch Entities</button>
