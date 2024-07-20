@@ -15,7 +15,7 @@ const EntityUpdateForm = () => {
         setFormData(response.data);
         setEntityAttributes(Object.keys(response.data));
       } catch (error) {
-        console.error('Error fetching entity data:', error);
+        console.error('Error in fetching entity data:', error);
       }
     };
 
